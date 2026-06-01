@@ -37,6 +37,11 @@
   h1{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(38px,12vw,58px);line-height:.95;margin:0;letter-spacing:.5px;}
   h1 em{font-style:italic;color:var(--red);}
   .blurb{font-size:12.5px;line-height:1.65;color:var(--ink-soft);max-width:30ch;margin:0 auto;}
+  .brandmark{display:inline-flex;flex-direction:column;align-items:center;gap:2px;}
+  .brandmark .word{font-family:"Instrument Serif",serif;font-size:30px;line-height:.9;color:var(--red);letter-spacing:.5px;}
+  .brandmark.sm .word{font-size:21px;}
+  .brandmark .wave{display:block;width:118px;height:8px;}
+  .brandmark.sm .wave{width:84px;}
 
   .compass{position:relative;width:min(78vw,320px);aspect-ratio:1;margin:6px auto 2px;filter:drop-shadow(0 18px 26px rgba(33,29,24,.22));}
   .compass svg{width:100%;height:100%;overflow:visible;display:block;}
@@ -67,6 +72,10 @@
 <div class="wrap">
 
   <section id="intro" class="fade">
+    <div class="brandmark">
+      <span class="word">Lake Hour</span>
+      <svg class="wave" viewBox="0 0 118 8" fill="none"><path d="M2 5 Q 11 -1 20 5 T 38 5 T 56 5 T 74 5 T 92 5 T 116 5" stroke="#dc4943" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </div>
     <div class="kicker">A Fine Time</div>
     <h1>Which way<br>to the <em>lake</em>.</h1>
     <p class="blurb">A compass. It points at the nearest place that sells Lake&nbsp;Hour. That's the whole thing.</p>
@@ -81,6 +90,10 @@
   </section>
 
   <section id="active" class="hidden">
+    <div class="brandmark sm">
+      <span class="word">Lake Hour</span>
+      <svg class="wave" viewBox="0 0 84 8" fill="none"><path d="M2 5 Q 9 -1 16 5 T 30 5 T 44 5 T 58 5 T 82 5" stroke="#dc4943" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </div>
     <div class="compass">
       <div class="ahead-mark" title="straight ahead"></div>
       <svg viewBox="0 0 400 400" aria-label="compass pointing to nearest Lake Hour">
@@ -88,11 +101,29 @@
         <circle cx="200" cy="200" r="188" fill="#f6efde"/>
         <circle cx="200" cy="200" r="188" fill="none" stroke="#dc4943" stroke-width="6"/>
         <circle cx="200" cy="200" r="176" fill="none" stroke="#cdbf9f" stroke-width="1.5"/>
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e9b15a"/>
+            <stop offset="34%" stop-color="#cd8a54"/>
+            <stop offset="56%" stop-color="#4e8086"/>
+            <stop offset="100%" stop-color="#21474c"/>
+          </linearGradient>
+          <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffe1a3"/>
+            <stop offset="45%" stop-color="#f3bd66" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#f3bd66" stop-opacity="0"/>
+          </radialGradient>
+          <clipPath id="dialClip"><circle cx="200" cy="200" r="150"/></clipPath>
+        </defs>
         <circle cx="200" cy="200" r="150" fill="#2f5d63"/>
-        <circle cx="200" cy="200" r="150" fill="url(#water)" opacity="0.5"/>
-        <defs><radialGradient id="water" cx="50%" cy="38%" r="70%">
-          <stop offset="0%" stop-color="#5b9097"/><stop offset="100%" stop-color="#21474c"/>
-        </radialGradient></defs>
+        <g clip-path="url(#dialClip)" opacity="0.92">
+          <rect x="48" y="48" width="304" height="304" fill="url(#sky)"/>
+          <circle cx="200" cy="150" r="46" fill="url(#sunGlow)"/>
+          <circle cx="200" cy="150" r="15" fill="#ffdf9b"/>
+          <line x1="50" y1="206" x2="350" y2="206" stroke="#16363b" stroke-width="2" opacity="0.4"/>
+          <line x1="176" y1="216" x2="224" y2="216" stroke="#ffdf9b" stroke-width="2.5" opacity="0.22"/>
+          <line x1="184" y1="226" x2="216" y2="226" stroke="#ffdf9b" stroke-width="2.5" opacity="0.15"/>
+        </g>
         <g id="card">
           <g id="ticks"></g>
           <text x="200" y="58"  text-anchor="middle" font-family="Instrument Serif, serif" font-size="30" fill="#f1e9d8">N</text>
@@ -101,13 +132,13 @@
           <text x="56"  y="211" text-anchor="middle" font-family="Instrument Serif, serif" font-size="24" fill="#cfe2e3">W</text>
         </g>
         <g id="needle">
-          <path d="M200 232 L188 196 L212 196 Z" fill="#f1e9d8" stroke="#211d18" stroke-width="2" stroke-linejoin="round"/>
-          <g>
-            <rect x="184" y="78" width="32" height="78" rx="7" fill="#dc4943" stroke="#211d18" stroke-width="2.5"/>
-            <rect x="184" y="104" width="32" height="20" fill="#f1e9d8" opacity="0.92"/>
-            <ellipse cx="200" cy="80" rx="16" ry="5.5" fill="#b8332e" stroke="#211d18" stroke-width="2.5"/>
-            <path d="M200 58 L190 80 L210 80 Z" fill="#dc4943" stroke="#211d18" stroke-width="2.5" stroke-linejoin="round"/>
-          </g>
+          <!-- south tail: cream blade -->
+          <path d="M188 200 L212 200 L200 312 Z" fill="#f1e9d8" stroke="#211d18" stroke-width="2" stroke-linejoin="round"/>
+          <!-- north point: red blade -->
+          <path d="M200 64 L212 96 L212 200 L188 200 L188 96 Z" fill="#dc4943" stroke="#211d18" stroke-width="2" stroke-linejoin="round"/>
+          <!-- brand etched up the pointer -->
+          <text x="200" y="153" text-anchor="middle" transform="rotate(-90 200 153)"
+                font-family="Instrument Serif, serif" font-size="13" letter-spacing="2" fill="#f6efde">LAKE HOUR</text>
         </g>
         <circle cx="200" cy="200" r="13" fill="#f1e9d8" stroke="#211d18" stroke-width="2.5"/>
         <circle cx="200" cy="200" r="4" fill="#211d18"/>
