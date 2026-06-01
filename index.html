@@ -1,0 +1,556 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#dc4943">
+<title>Which Way to the Lake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f1e9d8; --paper-deep:#e7dcc4; --ink:#211d18; --ink-soft:#5b5345;
+    --red:#dc4943; --red-deep:#b8332e; --lake:#2f5d63; --lake-deep:#21474c;
+    --brass:#b0843c; --line:#cdbf9f;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{
+    background:var(--paper); color:var(--ink); font-family:"DM Mono",ui-monospace,monospace;
+    min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:28px 22px; text-align:center; overflow:hidden; position:relative;
+  }
+  body::before{ content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:radial-gradient(120% 120% at 50% 20%, rgba(255,255,255,.35), transparent 55%),
+               radial-gradient(140% 140% at 50% 110%, rgba(33,29,24,.18), transparent 60%);
+    mix-blend-mode:multiply; }
+  body::after{ content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    mix-blend-mode:multiply; }
+  .wrap{position:relative;z-index:1;width:100%;max-width:440px;display:flex;flex-direction:column;align-items:center;gap:18px;}
+
+  .kicker{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--red-deep);display:flex;align-items:center;gap:10px;font-weight:500;}
+  .kicker::before,.kicker::after{content:"";height:1px;width:26px;background:var(--red-deep);opacity:.5;}
+
+  h1{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(38px,12vw,58px);line-height:.95;margin:0;letter-spacing:.5px;}
+  h1 em{font-style:italic;color:var(--red);}
+  .blurb{font-size:12.5px;line-height:1.65;color:var(--ink-soft);max-width:30ch;margin:0 auto;}
+
+  .compass{position:relative;width:min(78vw,320px);aspect-ratio:1;margin:6px auto 2px;filter:drop-shadow(0 18px 26px rgba(33,29,24,.22));}
+  .compass svg{width:100%;height:100%;overflow:visible;display:block;}
+  #card{transition:transform .35s cubic-bezier(.2,.7,.2,1);}
+  #needle{transition:transform .28s cubic-bezier(.18,.8,.25,1);}
+  .ahead-mark{position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:13px solid var(--ink);}
+
+  .readout{display:flex;flex-direction:column;align-items:center;gap:3px;min-height:74px;}
+  .read-label{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-soft);}
+  .place{font-family:"Instrument Serif",serif;font-size:clamp(24px,7vw,32px);line-height:1.05;margin:0;}
+  .meta{font-size:12px;color:var(--ink-soft);letter-spacing:.02em;}
+  .dist{color:var(--red-deep);font-weight:500;}
+
+  .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;}
+  .btn{font-family:"DM Mono",monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;background:var(--red);color:var(--paper);border:none;border-radius:999px;padding:14px 26px;cursor:pointer;font-weight:500;box-shadow:0 4px 0 var(--red-deep);transition:transform .12s, box-shadow .12s;text-decoration:none;display:inline-block;}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--red-deep);}
+  .link{font-size:11px;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;cursor:pointer;letter-spacing:.04em;background:none;border:none;font-family:inherit;}
+  .link:hover{color:var(--red-deep);}
+  .note{font-size:11px;color:var(--ink-soft);line-height:1.5;max-width:32ch;}
+  .note.err{color:var(--red-deep);}
+  footer{position:fixed;bottom:14px;left:0;right:0;z-index:1;text-align:center;font-size:9.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-soft);opacity:.7;}
+  .hidden{display:none!important;}
+  .fade{animation:fade .5s ease both;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section id="intro" class="fade">
+    <div class="kicker">A Fine Time</div>
+    <h1>Which way<br>to the <em>lake</em>.</h1>
+    <p class="blurb">A compass. It points at the nearest place that sells Lake&nbsp;Hour. That's the whole thing.</p>
+    <div class="actions" style="margin-top:6px;"><button class="btn" id="startBtn">Point me there</button></div>
+    <p class="note">Needs your location and, on a phone, permission to use the compass. Works best outside, held flat.</p>
+  </section>
+
+  <section id="loading" class="hidden">
+    <div class="kicker">Hold still</div>
+    <h1 style="font-size:clamp(30px,9vw,44px);">Finding the<br><em>nearest can.</em></h1>
+    <p class="note" id="loadingNote">Reading your compass…</p>
+  </section>
+
+  <section id="active" class="hidden">
+    <div class="compass">
+      <div class="ahead-mark" title="straight ahead"></div>
+      <svg viewBox="0 0 400 400" aria-label="compass pointing to nearest Lake Hour">
+        <circle cx="200" cy="200" r="196" fill="none" stroke="#211d18" stroke-width="3"/>
+        <circle cx="200" cy="200" r="188" fill="#f6efde"/>
+        <circle cx="200" cy="200" r="188" fill="none" stroke="#dc4943" stroke-width="6"/>
+        <circle cx="200" cy="200" r="176" fill="none" stroke="#cdbf9f" stroke-width="1.5"/>
+        <circle cx="200" cy="200" r="150" fill="#2f5d63"/>
+        <circle cx="200" cy="200" r="150" fill="url(#water)" opacity="0.5"/>
+        <defs><radialGradient id="water" cx="50%" cy="38%" r="70%">
+          <stop offset="0%" stop-color="#5b9097"/><stop offset="100%" stop-color="#21474c"/>
+        </radialGradient></defs>
+        <g id="card">
+          <g id="ticks"></g>
+          <text x="200" y="58"  text-anchor="middle" font-family="Instrument Serif, serif" font-size="30" fill="#f1e9d8">N</text>
+          <text x="346" y="211" text-anchor="middle" font-family="Instrument Serif, serif" font-size="24" fill="#cfe2e3">E</text>
+          <text x="200" y="360" text-anchor="middle" font-family="Instrument Serif, serif" font-size="24" fill="#cfe2e3">S</text>
+          <text x="56"  y="211" text-anchor="middle" font-family="Instrument Serif, serif" font-size="24" fill="#cfe2e3">W</text>
+        </g>
+        <g id="needle">
+          <path d="M200 232 L188 196 L212 196 Z" fill="#f1e9d8" stroke="#211d18" stroke-width="2" stroke-linejoin="round"/>
+          <g>
+            <rect x="184" y="78" width="32" height="78" rx="7" fill="#dc4943" stroke="#211d18" stroke-width="2.5"/>
+            <rect x="184" y="104" width="32" height="20" fill="#f1e9d8" opacity="0.92"/>
+            <ellipse cx="200" cy="80" rx="16" ry="5.5" fill="#b8332e" stroke="#211d18" stroke-width="2.5"/>
+            <path d="M200 58 L190 80 L210 80 Z" fill="#dc4943" stroke="#211d18" stroke-width="2.5" stroke-linejoin="round"/>
+          </g>
+        </g>
+        <circle cx="200" cy="200" r="13" fill="#f1e9d8" stroke="#211d18" stroke-width="2.5"/>
+        <circle cx="200" cy="200" r="4" fill="#211d18"/>
+      </svg>
+    </div>
+    <div class="readout">
+      <div class="read-label">Nearest Lake Hour</div>
+      <h2 class="place" id="placeName">—</h2>
+      <div class="meta"><span class="dist" id="placeDist"></span><span id="placeWhere"></span></div>
+    </div>
+    <div class="actions"><a class="btn" id="mapsBtn" target="_blank" rel="noopener">Get directions</a></div>
+    <div class="actions"><button class="link" id="nextBtn">not this one? try the next closest ›</button></div>
+    <p class="note" id="activeNote"></p>
+  </section>
+
+  <section id="error" class="hidden">
+    <div class="kicker">Hm.</div>
+    <h1 style="font-size:clamp(28px,8vw,42px);" id="errTitle">No fix.</h1>
+    <p class="note err" id="errMsg"></p>
+    <div class="actions"><button class="btn" id="retryBtn">Try again</button></div>
+  </section>
+
+</div>
+<footer>Lake Hour — A Fine Time</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =========================================================================
+     LAKE HOUR LOCATIONS
+     Add as many as you like. Two ways to list a spot:
+       1) With coordinates (instant, no lookup):
+            { name:"Vig Bar", where:"Nolita", lat:40.72155, lng:-73.99475 }
+       2) Address only (auto-geocoded in the browser on load):
+            { name:"DBA", address:"41 First Ave, New York, NY 10003" }
+     Tip: once it's running, baking in lat/lng for everything makes it instant
+     and removes the geocoder dependency for production.
+  ========================================================================= */
+  var LOCATIONS = [
+    { name:"VIG BAR", where:"New York, NY \u00b7 drink on site", lat:40.72155, lng:-73.99475 },
+    { name:"RAYS", where:"New York, NY \u00b7 drink on site", lat:40.72195, lng:-73.99205 },
+    { name:"DBA", where:"New York, NY \u00b7 drink on site", lat:40.7314, lng:-73.9884 },
+    { name:"ARCHIVE WINE & SPIRITS", where:"New York, NY \u00b7 buy in store", lat:40.7142, lng:-74.0082 },
+    { name:"KELLYS", where:"New York, NY \u00b7 drink on site", lat:40.727, lng:-73.9801 },
+    { name:"MAIDEN LANE", where:"New York, NY \u00b7 drink on site", lat:40.727, lng:-73.9801 },
+    { name:"IRVING PLAZA", where:"New York, NY \u00b7 drink on site", lat:40.7314, lng:-73.9884 },
+    { name:"GRAMERCY THEATRE", where:"New York, NY \u00b7 drink on site", lat:40.7386, lng:-73.9829 },
+    { name:"DANDY WINE & SPIRITS", where:"Brooklyn, NY \u00b7 buy in store", lat:40.6933, lng:-73.9925 },
+    { name:"GRAND WINE & SPIRITS", where:"Brooklyn, NY \u00b7 buy in store", lat:40.6933, lng:-73.9925 },
+    { name:"Lavender Lake", where:"Brooklyn, NY", lat:40.6933, lng:-73.9925 },
+    { name:"DESERT FIVE SPOT B", where:"Brooklyn, NY \u00b7 drink on site", lat:40.6933, lng:-73.9925 },
+    { name:"THE WHISKEY BROOKLYN", where:"Brooklyn, NY \u00b7 drink on site", lat:40.6933, lng:-73.9925 },
+    { name:"BROKEN LAND", where:"Brooklyn, NY \u00b7 drink on site", lat:40.7283, lng:-73.9448 },
+    { name:"DUKES LIQUOR BOX", where:"Brooklyn, NY \u00b7 buy in store", lat:40.7283, lng:-73.9448 },
+    { name:"FULTON HALL", where:"Brooklyn, NY \u00b7 drink on site", lat:40.6813, lng:-73.981 },
+    { name:"RAYS HOMETOWN BAR", where:"Brooklyn, NY \u00b7 drink on site", lat:40.7283, lng:-73.9448 },
+    { name:"THE PALACE", where:"Brooklyn, NY \u00b7 drink on site", lat:40.7283, lng:-73.9448 },
+    { name:"ROYAL PALMS SHUFFLEBOARD CLUB", where:"Brooklyn, NY \u00b7 drink on site", lat:40.6651, lng:-73.9803 },
+    { name:"FERMENTED GRAPES", where:"Brooklyn, NY \u00b7 buy in store", lat:40.6762, lng:-73.9644 },
+    { name:"YARDSALE W&S", where:"Brooklyn, NY \u00b7 buy in store", lat:40.6651, lng:-73.9803 },
+    { name:"HEAVEN OR LAS VEGAS", where:"Brooklyn, NY \u00b7 drink on site", lat:40.7027, lng:-73.9185 },
+    { name:"101 WILSON BAR", where:"Brooklyn, NY \u00b7 drink on site", lat:40.7027, lng:-73.9185 },
+    { name:"FULTON ALE HOUSE", where:"Brooklyn, NY \u00b7 drink on site", lat:40.681, lng:-73.9476 },
+    { name:"ALPHAVILLE", where:"Brooklyn, NY \u00b7 drink on site", lat:40.7027, lng:-73.9185 },
+    { name:"ACES PIZZA", where:"Brooklyn, NY \u00b7 drink on site", lat:40.7027, lng:-73.9185 },
+    { name:"TURBO PIZZA", where:"Brooklyn, NY \u00b7 drink on site", lat:40.7027, lng:-73.9185 },
+    { name:"TALON BAR", where:"Brooklyn, NY \u00b7 drink on site", lat:40.7027, lng:-73.9185 },
+    { name:"EASTSIDE CELLARS", where:"New York, NY \u00b7 buy in store", lat:40.7815, lng:-73.9488 },
+    { name:"JONES", where:"Ridgewood, NY \u00b7 drink on site", lat:40.6982, lng:-73.8804 },
+    { name:"BEAN POST", where:"Brooklyn, NY \u00b7 drink on site", lat:40.6209, lng:-74.0291 },
+    { name:"THE HOP SHOPPE", where:"Staten Island, NY \u00b7 drink on site", lat:40.6072, lng:-74.0953 },
+    { name:"WINNIE SAID", where:"New York, NY \u00b7 drink on site", lat:40.8269, lng:-73.9496 },
+    { name:"FAGANS ALE HOUSE", where:"Yonkers, NY \u00b7 drink on site", lat:40.923, lng:-73.8634 },
+    { name:"MOLLY MALONES TAVERN", where:"Yonkers, NY \u00b7 drink on site", lat:40.923, lng:-73.8634 },
+    { name:"WINE AND SPIRITS DISCOUNT WAREHOUSE", where:"New Rochelle, NY \u00b7 buy in store", lat:40.9157, lng:-73.7829 },
+    { name:"BEACH WINE AND MORE", where:"Long Beach, NY \u00b7 buy in store", lat:40.5895, lng:-73.6408 },
+    { name:"SHOPRITE WINES & SPIRITS", where:"Pearl River, NY \u00b7 buy in store", lat:41.0617, lng:-74.0126 },
+    { name:"DONNIES PUB", where:"White Plains, NY \u00b7 drink on site", lat:41.0077, lng:-73.744 },
+    { name:"LAZY BOY SALOON", where:"White Plains, NY \u00b7 drink on site", lat:41.0315, lng:-73.7644 },
+    { name:"BUY WISE LIQUOR OUTLET", where:"Nanuet, NY \u00b7 buy in store", lat:41.0956, lng:-74.0111 },
+    { name:"SET BACK INN", where:"Tarrytown, NY \u00b7 drink on site", lat:41.0829, lng:-73.85 },
+    { name:"WINE & WHISKEY CELLAR", where:"West Nyack, NY \u00b7 buy in store", lat:41.0987, lng:-73.9708 },
+    { name:"168 DISCOUNT WINE & LIQUOR", where:"Port Chester, NY \u00b7 buy in store", lat:41.0232, lng:-73.6781 },
+    { name:"TIME OUT SPORTS CAFE", where:"Hicksville, NY \u00b7 drink on site", lat:40.7654, lng:-73.5237 },
+    { name:"THE COOP", where:"Farmingdale, NY \u00b7 drink on site", lat:40.7325, lng:-73.4338 },
+    { name:"BEST BUY LIQUOR & WINE", where:"New City, NY \u00b7 buy in store", lat:41.1555, lng:-73.9908 },
+    { name:"FOLEYS CLUB LOUNGE", where:"Pleasantville, NY \u00b7 drink on site", lat:41.1255, lng:-73.7924 },
+    { name:"CROTON GRILLE", where:"Croton On Hudson, NY \u00b7 drink on site", lat:41.2092, lng:-73.8788 },
+    { name:"KYLES PUB", where:"Peekskill, NY \u00b7 drink on site", lat:41.2847, lng:-73.9232 },
+    { name:"PEEKSKILL PUBLIC KITCHEN & BAR", where:"Peekskill, NY \u00b7 drink on site", lat:41.2847, lng:-73.9232 },
+    { name:"THE CORTLAND", where:"Bay Shore, NY \u00b7 drink on site", lat:40.6988, lng:-73.2076 },
+    { name:"MAGNOLIAS", where:"Bay Shore, NY \u00b7 drink on site", lat:40.6988, lng:-73.2076 },
+    { name:"HIGHLAND SOCIAL KITCHEN AND BAR", where:"Highland Falls, NY \u00b7 drink on site", lat:41.3246, lng:-74.0485 },
+    { name:"STERLING CELLARS", where:"Mahopac, NY \u00b7 buy in store", lat:41.3745, lng:-73.7521 },
+    { name:"GOSHEN PLAZA LIQUOR", where:"Goshen, NY \u00b7 buy in store", lat:41.3781, lng:-74.3619 },
+    { name:"FAMILY WINE & LIQUOR", where:"Middletown, NY \u00b7 buy in store", lat:41.4888, lng:-74.3499 },
+    { name:"KENT LIQUORS", where:"Carmel, NY \u00b7 buy in store", lat:41.4313, lng:-73.7256 },
+    { name:"FINE WINE & GOOD SPIRITS 0912", where:"New Hope, PA", lat:40.3539, lng:-75.0016 },
+    { name:"FINE WINE & GOOD SPIRITS 0943", where:"Newtown, PA", lat:40.265, lng:-74.9563 },
+    { name:"FINE WINE & GOOD SPIRITS 0934", where:"Doylestown, PA", lat:40.3061, lng:-75.147 },
+    { name:"FINE WINE & GOOD SPIRITS 4819", where:"Easton, PA", lat:40.6965, lng:-75.2808 },
+    { name:"FINE WINE & GOOD SPIRITS 5185", where:"Philadelphia, PA", lat:39.9629, lng:-75.1438 },
+    { name:"FINE WINE & GOOD SPIRITS 6401", where:"Hawley, PA", lat:41.4172, lng:-75.1658 },
+    { name:"FINE WINE & GOOD SPIRITS 5104", where:"Philadelphia, PA", lat:39.9119, lng:-75.1514 },
+    { name:"RISING RIVER BREWERY", where:"Macungie, PA \u00b7 drink on site", lat:40.5035, lng:-75.5869 },
+    { name:"TUBBYS", where:"Kingston, NY \u00b7 drink on site", lat:41.9334, lng:-74.0628 },
+    { name:"TERRAPIN RESTAURANT", where:"Rhinebeck, NY \u00b7 drink on site", lat:41.9261, lng:-73.8692 },
+    { name:"FINE WINE & GOOD SPIRITS 4624", where:"King Of Prussia, PA", lat:40.0929, lng:-75.3944 },
+    { name:"FINE WINE & GOOD SPIRITS 4646", where:"Ardmore, PA", lat:40.0025, lng:-75.3002 },
+    { name:"Cornerstone Bistro & Artisanal Market", where:"Wayne, PA", lat:40.0572, lng:-75.4035 },
+    { name:"FINE WINE & GOOD SPIRITS 4648", where:"Collegeville, PA", lat:40.187, lng:-75.4267 },
+    { name:"FINE WINE & GOOD SPIRITS 6403", where:"Hamlin, PA", lat:41.3919, lng:-75.3415 },
+    { name:"FINE WINE & GOOD SPIRITS 3516", where:"Clarks Summit, PA", lat:41.4581, lng:-75.7305 },
+    { name:"SCRIBNER HOLLOW MTR LODGE", where:"Hunter, NY \u00b7 drink on site", lat:42.2327, lng:-74.259 },
+    { name:"66 FINE WINE & LIQUOR", where:"Hudson, NY \u00b7 buy in store", lat:42.2301, lng:-73.7382 },
+    { name:"FINE WINE & GOOD SPIRITS 0621", where:"Wyomissing, PA", lat:40.3379, lng:-75.9768 },
+    { name:"MI RANCHO ALEGRE", where:"Hudson, NY \u00b7 drink on site", lat:42.2301, lng:-73.7382 },
+    { name:"FINE WINE & GOOD SPIRITS 4003", where:"Dallas, PA", lat:41.3549, lng:-75.9889 },
+    { name:"THE TASTING LAB", where:"Greenville, NY \u00b7 drink on site", lat:42.4309, lng:-74.0383 },
+    { name:"WOODSHED WINE & SPIRITS", where:"Kirkwood, NY \u00b7 buy in store", lat:42.0613, lng:-75.7902 },
+    { name:"FINE WINE & GOOD SPIRITS 1903", where:"Bloomsburg, PA", lat:41.0457, lng:-76.429 },
+    { name:"THE EXCELSIOR PUB", where:"Albany, NY \u00b7 drink on site", lat:42.6553, lng:-73.7514 },
+    { name:"C & D LIQUOR", where:"Binghamton, NY \u00b7 buy in store", lat:42.1648, lng:-75.8786 },
+    { name:"JOHNSON CITY LIQUOR & WINE", where:"Johnson City, NY \u00b7 buy in store", lat:42.1642, lng:-76.0043 },
+    { name:"FINE WINE & GOOD SPIRITS 6003", where:"Lewisburg, PA", lat:40.9899, lng:-76.9824 },
+    { name:"FINE WINE & GOOD SPIRITS 4110", where:"Williamsport, PA", lat:41.2796, lng:-77.0299 },
+    { name:"SACANDAGA SPIRITS", where:"Mayfield, NY \u00b7 buy in store", lat:43.1524, lng:-74.2408 },
+    { name:"ILL EAGLE TAP HOUSE", where:"Elmira, NY \u00b7 drink on site", lat:42.0749, lng:-76.7272 },
+    { name:"GRAPES & GRAINS", where:"Elmira, NY \u00b7 buy in store", lat:42.0749, lng:-76.7272 },
+    { name:"NORTHSIDE WINE & SPIRITS", where:"Ithaca, NY \u00b7 buy in store", lat:42.4067, lng:-76.5184 },
+    { name:"LAKE GEORGE WINE OUTLET", where:"Lake George, NY \u00b7 buy in store", lat:43.4273, lng:-73.7073 },
+    { name:"TRUMANSBURG WINE & SPIRITS", where:"Trumansburg, NY \u00b7 buy in store", lat:42.5106, lng:-76.6829 },
+    { name:"FAZZARYS WINES & LIQUOR", where:"Corning, NY \u00b7 buy in store", lat:42.1382, lng:-77.0288 },
+    { name:"LIQUOR FACTORY", where:"Painted Post, NY \u00b7 buy in store", lat:42.1775, lng:-77.14 },
+    { name:"ERWIN LIQUORS AND WINES", where:"Painted Post, NY \u00b7 buy in store", lat:42.1775, lng:-77.14 },
+    { name:"ERWINNA TAVERN", where:"Painted Post, NY \u00b7 drink on site", lat:42.1775, lng:-77.14 },
+    { name:"CAYUGA SHORELINE EVENTS", where:"Interlaken, NY \u00b7 drink on site", lat:42.6024, lng:-76.7324 },
+    { name:"SKYTOP LIQUORS", where:"Syracuse, NY \u00b7 buy in store", lat:43.0384, lng:-76.0991 },
+    { name:"PEPPERS DISCOUNT LIQUOR & WINE", where:"Auburn, NY \u00b7 buy in store", lat:42.9129, lng:-76.5724 },
+    { name:"GRANT AVENUE WINE & LIQUOR", where:"Auburn, NY \u00b7 buy in store", lat:42.9129, lng:-76.5724 },
+    { name:"KEG & BARREL BREWING CO", where:"Dundee, NY \u00b7 drink on site", lat:42.4933, lng:-77.0156 },
+    { name:"SWITZERLAND INN", where:"Hammondsport, NY \u00b7 drink on site", lat:42.4469, lng:-77.2005 },
+    { name:"DOCKSIDE WINES & SPIRITS", where:"Hammondsport, NY \u00b7 drink on site", lat:42.4469, lng:-77.2005 },
+    { name:"TIMBER STONE GRILL", where:"Hammondsport, NY \u00b7 drink on site", lat:42.4469, lng:-77.2005 },
+    { name:"FINE WINE & GOOD SPIRITS 1405", where:"State College, PA", lat:40.8056, lng:-77.9025 },
+    { name:"VETERANS OF FOREIGN WARS", where:"Bath, NY \u00b7 drink on site", lat:42.3624, lng:-77.3612 },
+    { name:"WATER STREET WINES & SPIRITS", where:"Penn Yan, NY \u00b7 buy in store", lat:42.6302, lng:-77.0536 },
+    { name:"FINE WINE & GOOD SPIRITS 3101", where:"Huntingdon, PA", lat:40.5628, lng:-77.9119 },
+    { name:"RAMADA PLAZA", where:"Geneva, NY \u00b7 drink on site", lat:42.8505, lng:-76.9894 },
+    { name:"SMITH OPERA HOUSE", where:"Geneva, NY \u00b7 drink on site", lat:42.8505, lng:-76.9894 },
+    { name:"PEDULLAS LIQUOR STORE", where:"Geneva, NY \u00b7 buy in store", lat:42.8505, lng:-76.9894 },
+    { name:"CHESTERS LAST STAND", where:"Fulton, NY \u00b7 drink on site", lat:43.331, lng:-76.3756 },
+    { name:"MAIN STREET WINE & LIQUOR", where:"Naples, NY \u00b7 buy in store", lat:42.6561, lng:-77.3848 },
+    { name:"HORNELL GOLF CLUB", where:"Hornell, NY \u00b7 drink on site", lat:42.3143, lng:-77.6308 },
+    { name:"RYANS WINE & SPIRITS", where:"Canandaigua, NY \u00b7 buy in store", lat:42.8304, lng:-77.3151 },
+    { name:"COLLOCA ESTATE", where:"Sterling, NY \u00b7 drink on site", lat:43.3482, lng:-76.6683 },
+    { name:"HAMMERHEADS", where:"Dansville, NY \u00b7 drink on site", lat:42.5733, lng:-77.7271 },
+    { name:"SWAIN RESORT", where:"Swain, NY \u00b7 drink on site", lat:42.4727, lng:-77.898 },
+    { name:"BEACHCOMBERS", where:"Conesus, NY \u00b7 drink on site", lat:42.7033, lng:-77.6631 },
+    { name:"LIVONIA WINE & SPIRITS", where:"Livonia, NY \u00b7 buy in store", lat:42.8096, lng:-77.6245 },
+    { name:"SOLITUDE BREWING COMPANY", where:"Lakeville, NY \u00b7 drink on site", lat:42.8396, lng:-77.7031 },
+    { name:"LAKEVILLE LIQUOR STORE", where:"Lakeville, NY \u00b7 buy in store", lat:42.8396, lng:-77.7031 },
+    { name:"GEORGETOWN LIQUORS", where:"Fairport, NY \u00b7 buy in store", lat:43.1043, lng:-77.4262 },
+    { name:"SWEET & CUTE SWEETS", where:"Honeoye Falls, NY \u00b7 drink on site", lat:42.9679, lng:-77.6019 },
+    { name:"THE PORTERHOUSE", where:"Fairport, NY \u00b7 drink on site", lat:43.1043, lng:-77.4262 },
+    { name:"GOOD SPIRITS DISCOUNT WINE & LIQUOR", where:"Geneseo, NY \u00b7 buy in store", lat:42.7833, lng:-77.7812 },
+    { name:"LIVINGSTON LANES", where:"Geneseo, NY \u00b7 drink on site", lat:42.7833, lng:-77.7812 },
+    { name:"VILLAGE TAVERN", where:"Geneseo, NY \u00b7 drink on site", lat:42.7833, lng:-77.7812 },
+    { name:"MT. MORRIS LANES & PRO SHOP", where:"Mount Morris, NY \u00b7 drink on site", lat:42.6861, lng:-77.878 },
+    { name:"LISAS LIQUOR BARN", where:"Penfield, NY \u00b7 buy in store", lat:43.1457, lng:-77.4474 },
+    { name:"HIGH BANKS TAVERN", where:"Mount Morris, NY \u00b7 drink on site", lat:42.6861, lng:-77.878 },
+    { name:"DIPAINE CATERING", where:"Geneseo, NY \u00b7 drink on site", lat:42.7833, lng:-77.7812 },
+    { name:"LIQUOR MART", where:"East Rochester, NY \u00b7 buy in store", lat:43.1115, lng:-77.4967 },
+    { name:"AN WINE & LIQUOR HOUSE", where:"Geneseo, NY \u00b7 buy in store", lat:42.7833, lng:-77.7812 },
+    { name:"KELLYS SALOON", where:"Geneseo, NY \u00b7 drink on site", lat:42.7833, lng:-77.7812 },
+    { name:"CENTURY PITTSFORD WINES", where:"Rochester, NY \u00b7 buy in store", lat:43.1155, lng:-77.5557 },
+    { name:"ADELITAS MEXICAN COCINA & TEQUILA", where:"Rochester, NY \u00b7 drink on site", lat:43.1155, lng:-77.5557 },
+    { name:"TJS LIQUOR & WINE", where:"Retsof, NY \u00b7 buy in store", lat:42.8398, lng:-77.8742 },
+    { name:"PINNACLE LIQUOR", where:"Rochester, NY \u00b7 buy in store", lat:43.1155, lng:-77.5557 },
+    { name:"PERRIS PIZZERIA AT THE BRIGHTON PUB", where:"Rochester, NY \u00b7 drink on site", lat:43.1454, lng:-77.5465 },
+    { name:"UNIVERSAL LIQUOR", where:"Rochester, NY \u00b7 buy in store", lat:43.1517, lng:-77.583 },
+    { name:"BAD ENDING", where:"Rochester, NY \u00b7 drink on site", lat:43.1289, lng:-77.6045 },
+    { name:"THREE HEADS BREWING", where:"Rochester, NY \u00b7 drink on site", lat:43.1517, lng:-77.583 },
+    { name:"ROAM CAFE", where:"Rochester, NY \u00b7 drink on site", lat:43.1517, lng:-77.583 },
+    { name:"JACKRABBIT CLUB", where:"Rochester, NY \u00b7 drink on site", lat:43.1517, lng:-77.583 },
+    { name:"UNWINED", where:"Rochester, NY \u00b7 buy in store", lat:43.1569, lng:-77.6052 },
+    { name:"GUSTO", where:"Rochester, NY \u00b7 drink on site", lat:43.1268, lng:-77.7295 },
+    { name:"CHILI LIQUOR STORE", where:"Rochester, NY \u00b7 buy in store", lat:43.1268, lng:-77.7295 },
+    { name:"DEBS LIQUOR MART", where:"Rochester, NY \u00b7 buy in store", lat:43.1268, lng:-77.7295 },
+    { name:"BOOZYS WINE & SPIRITS", where:"Rochester, NY \u00b7 buy in store", lat:43.1268, lng:-77.7295 },
+    { name:"LIQUOR BOX", where:"Rochester, NY \u00b7 buy in store", lat:43.2288, lng:-77.672 },
+    { name:"PARKWAY DISCOUNT WINES & LIQUORS", where:"Rochester, NY \u00b7 buy in store", lat:43.2288, lng:-77.672 },
+    { name:"LATTA LONG LIQUOR STORE", where:"Rochester, NY \u00b7 buy in store", lat:43.2574, lng:-77.6681 },
+    { name:"FOWLERS WINE & SPIRITS", where:"Spencerport, NY \u00b7 buy in store", lat:43.1875, lng:-77.8303 },
+    { name:"MAHAN DISCOUNT LIQUOR", where:"Brockport, NY \u00b7 buy in store", lat:43.21, lng:-77.9143 },
+    { name:"CHEAP CHOLLIES", where:"Springville, NY \u00b7 buy in store", lat:42.5266, lng:-78.689 },
+    { name:"ETHYL WINE SHOP", where:"East Aurora, NY \u00b7 buy in store", lat:42.7682, lng:-78.5801 },
+    { name:"BARBILL TAVERN", where:"East Aurora, NY \u00b7 drink on site", lat:42.7682, lng:-78.5801 },
+    { name:"AURORA LIQUOR", where:"East Aurora, NY \u00b7 buy in store", lat:42.7682, lng:-78.5801 },
+    { name:"COLONIAL WINE & SPIRITS", where:"Orchard Park, NY \u00b7 buy in store", lat:42.7394, lng:-78.7368 },
+    { name:"MAGRUDERS CAFE", where:"Depew, NY \u00b7 drink on site", lat:42.899, lng:-78.708 },
+    { name:"LAKE WINE N SPIRITS", where:"Medina, NY \u00b7 buy in store", lat:43.2138, lng:-78.3594 },
+    { name:"MCKINLEY LIQUOR", where:"Buffalo, NY \u00b7 buy in store", lat:42.7894, lng:-78.8293 },
+    { name:"AIRPORT DISCOUNT LIQUORS", where:"Buffalo, NY \u00b7 buy in store", lat:42.9258, lng:-78.7483 },
+    { name:"GIMME GOLF", where:"Buffalo, NY \u00b7 drink on site", lat:42.9853, lng:-78.7224 },
+    { name:"WINFIELDS PUB", where:"Buffalo, NY \u00b7 drink on site", lat:42.8155, lng:-78.8173 },
+    { name:"IRISHMAN PUB & EATERY", where:"Buffalo, NY \u00b7 drink on site", lat:42.9853, lng:-78.7224 },
+    { name:"GLOBAL WINE & SPIRITS", where:"Buffalo, NY \u00b7 buy in store", lat:42.9749, lng:-78.7935 },
+    { name:"HOFBRAUHAUS BUFFALO", where:"Buffalo, NY \u00b7 drink on site", lat:42.8833, lng:-78.8638 },
+    { name:"THE DRAFT ROOM", where:"Buffalo, NY \u00b7 drink on site", lat:42.8671, lng:-78.8643 },
+    { name:"DN KEYBANK CENTER", where:"Buffalo, NY \u00b7 drink on site", lat:42.8671, lng:-78.8643 },
+    { name:"CAPUTI WINE AND LIQUOR", where:"Buffalo, NY \u00b7 buy in store", lat:42.9749, lng:-78.7935 },
+    { name:"THE LUCY GOOSE BAR & GRILL", where:"Angola, NY \u00b7 drink on site", lat:42.6366, lng:-79.0275 },
+    { name:"MILKIES ELMWOOD LOUNGE", where:"Buffalo, NY \u00b7 drink on site", lat:42.9183, lng:-78.875 },
+    { name:"MOOR ROOM", where:"Buffalo, NY \u00b7 drink on site", lat:42.9439, lng:-78.8606 },
+    { name:"PREMIER WINE & SPIRITS", where:"Buffalo, NY \u00b7 buy in store", lat:42.9749, lng:-78.7935 },
+    { name:"MES QUE", where:"Buffalo, NY \u00b7 drink on site", lat:42.9439, lng:-78.8606 },
+    { name:"MR GOODBAR", where:"Buffalo, NY \u00b7 drink on site", lat:42.9183, lng:-78.875 },
+    { name:"AMHERST ST WINE & LIQUOR", where:"Buffalo, NY \u00b7 buy in store", lat:42.9508, lng:-78.9008 },
+    { name:"WINE WORLD", where:"Buffalo, NY \u00b7 buy in store", lat:43.0387, lng:-78.7785 },
+    { name:"HELLTOWN BREWING", where:"Export, PA \u00b7 drink on site", lat:40.4368, lng:-79.6057 },
+    { name:"VOODOO BREWING CO", where:"New Kensington, PA \u00b7 drink on site", lat:40.5704, lng:-79.7278 },
+    { name:"RIVER PUB THE", where:"Niagara Falls, NY \u00b7 drink on site", lat:43.0996, lng:-78.9543 },
+    { name:"DRIFTWOOD OVEN", where:"Pittsburgh, PA \u00b7 drink on site", lat:40.4739, lng:-79.9559 },
+    { name:"HAMPTON INN & SUITES", where:"Pittsburgh, PA \u00b7 drink on site", lat:40.4478, lng:-79.9935 },
+    { name:"MIKES BEER BAR", where:"Pittsburgh, PA \u00b7 drink on site", lat:40.4678, lng:-80.0121 },
+    { name:"FINE WINE & GOOD SPIRITS 0273", where:"Pittsburgh, PA", lat:40.4678, lng:-80.0121 },
+    { name:"FINE WINE & GOOD SPIRITS 2504", where:"North East, PA", lat:42.1777, lng:-79.8466 },
+    { name:"FINE WINE & GOOD SPIRITS 2519", where:"Erie, PA", lat:42.1072, lng:-79.9538 },
+    { name:"THE TIME BREWPUB", where:"Ellwood City, PA \u00b7 drink on site", lat:40.8727, lng:-80.2503 },
+    { name:"FINE WINE & GOOD SPIRITS 2501", where:"Erie, PA", lat:42.0578, lng:-80.0435 },
+    { name:"FINE WINE & GOOD SPIRITS 2516", where:"Erie, PA", lat:42.095, lng:-80.093 },
+    { name:"FINE WINE & GOOD SPIRITS 2514", where:"Erie, PA", lat:42.114, lng:-80.1483 },
+    { name:"BLEU CANOE", where:"Clarkesville, GA \u00b7 drink on site", lat:34.7166, lng:-83.5099 },
+    { name:"FESTIVAL FOODS", where:"Kenosha, WI \u00b7 buy in store", lat:42.5385, lng:-87.9343 },
+    { name:"BAD MOON SALOON", where:"Milwaukee, WI \u00b7 drink on site", lat:42.9779, lng:-87.8941 },
+    { name:"MILWAUKEE SAIL LOFT", where:"Milwaukee, WI \u00b7 drink on site", lat:43.0429, lng:-87.8943 },
+    { name:"REFUEL PANTRY", where:"Hartford, WI \u00b7 buy in store", lat:43.3179, lng:-88.3637 },
+    { name:"WOODMANS LIQUOR STORE", where:"Madison, WI \u00b7 buy in store", lat:43.1012, lng:-89.3126 },
+    { name:"THREE LAKES TOWN MARKET", where:"Three Lakes, WI", lat:45.8327, lng:-89.0976 },
+    { name:"Total Wine & More", where:"Gainesville, FL", lat:29.5861, lng:-82.4031 },
+    { name:"BRESINAS", where:"Chippewa Falls, WI \u00b7 drink on site", lat:44.9462, lng:-91.4084 },
+    { name:"BEST WESTERN PLUS", where:"Eau Claire, WI \u00b7 drink on site", lat:44.7497, lng:-91.5149 },
+    { name:"PRICE RITE", where:"Hayward, WI \u00b7 buy in store", lat:46.0201, lng:-91.28 },
+    { name:"LINCOLNWOOD RESORT", where:"Birchwood, WI \u00b7 drink on site", lat:45.6751, lng:-91.5442 },
+    { name:"J & J LIQUOR", where:"Lake City, MN \u00b7 buy in store", lat:44.4124, lng:-92.3351 },
+    { name:"61 EXPRESS", where:"Frontenac, MN \u00b7 buy in store", lat:44.5206, lng:-92.335 },
+    { name:"MGM LIQUOR WAREHOUSE", where:"Red Wing, MN \u00b7 buy in store", lat:44.5274, lng:-92.5228 },
+    { name:"WILD MOUNTAIN", where:"Taylors Falls, MN \u00b7 drink on site", lat:45.4549, lng:-92.7145 },
+    { name:"CELLAR WINE & SPIRITS", where:"White Bear Lake, MN \u00b7 buy in store", lat:45.0939, lng:-93.0001 },
+    { name:"CUB WINE & SPIRITS", where:"Inver Grove Heights, MN \u00b7 buy in store", lat:44.8295, lng:-93.0356 },
+    { name:"Total Wine & More", where:"Tampa, FL", lat:27.9728, lng:-82.5563 },
+    { name:"CASH WISE LIQUOR", where:"Owatonna, MN \u00b7 buy in store", lat:44.0588, lng:-93.2261 },
+    { name:"CUB LIQUOR STORES", where:"West Saint Paul, MN \u00b7 buy in store", lat:44.8925, lng:-93.1221 },
+    { name:"ELY LIQUOR", where:"Ely, MN \u00b7 buy in store", lat:47.9968, lng:-91.6638 },
+    { name:"APPLE VALLEY MUNICIPAL LIQUOR", where:"Apple Valley, MN \u00b7 buy in store", lat:44.7465, lng:-93.202 },
+    { name:"DABBLER DEPOT", where:"Saint Paul, MN \u00b7 buy in store", lat:44.9278, lng:-93.1191 },
+    { name:"TOTAL WINE & MORE", where:"Saint Paul, MN \u00b7 buy in store", lat:44.8422, lng:-93.168 },
+    { name:"NORTH BRANCH LIQUORS", where:"North Branch, MN \u00b7 buy in store", lat:45.4971, lng:-92.9256 },
+    { name:"LUNDS & BYERLYS WINE & SPIRITS", where:"Burnsville, MN \u00b7 buy in store", lat:44.7318, lng:-93.288 },
+    { name:"TOTAL WINE & MORE", where:"Burnsville, MN \u00b7 buy in store", lat:44.7795, lng:-93.2756 },
+    { name:"CUB WINE & SPIRITS", where:"Burnsville, MN \u00b7 buy in store", lat:44.7795, lng:-93.2756 },
+    { name:"LITTLE BROWN JUG", where:"Biwabik, MN \u00b7 buy in store", lat:47.5312, lng:-92.3357 },
+    { name:"PRINCETONS LIQUOR", where:"Maple Grove, MN \u00b7 buy in store", lat:45.1267, lng:-93.4606 },
+    { name:"TOTAL WINE & MORE", where:"Maple Grove, MN \u00b7 buy in store", lat:45.1267, lng:-93.4606 },
+    { name:"EDWARDS OIL & PROPANE", where:"Virginia, MN", lat:47.5935, lng:-92.4426 },
+    { name:"ST BONI LIQUORS", where:"Saint Bonifacius, MN \u00b7 buy in store", lat:44.9019, lng:-93.7587 },
+    { name:"Total Wine & More", where:"Bradenton, FL", lat:27.4067, lng:-82.466 },
+    { name:"COLONY PLAZA", where:"Waconia, MN \u00b7 buy in store", lat:44.8545, lng:-93.7735 },
+    { name:"Total Wine & More", where:"Boca Raton, FL", lat:26.3465, lng:-80.1167 },
+    { name:"O BROTHERS WINE & SPIRITS", where:"Annandale, MN \u00b7 buy in store", lat:45.2608, lng:-94.1329 },
+    { name:"Total Wine & More", where:"Pembroke Pines, FL", lat:25.9823, lng:-80.3436 },
+    { name:"Ray's Bar Miami", where:"Miami Beach, FL", lat:25.8227, lng:-80.1396 },
+    { name:"WARROAD MUNICIPAL LIQUOR", where:"Warroad, MN \u00b7 buy in store", lat:48.8656, lng:-95.3725 },
+    { name:"BROOKDALE SPIRITS", where:"Moorhead, MN \u00b7 buy in store", lat:46.8465, lng:-96.7014 },
+    { name:"PARKHILLS WAREHOUSE LIQUORS & WINE", where:"Tulsa, OK \u00b7 buy in store", lat:36.097, lng:-95.9646 },
+    { name:"JACK DADDYS LIQUOR EMPORIUM", where:"Edmond, OK \u00b7 buy in store", lat:35.7072, lng:-97.4274 },
+    { name:"THE MULE", where:"Edmond, OK \u00b7 drink on site", lat:35.7072, lng:-97.4274 },
+    { name:"FREEMANS", where:"Oklahoma City, OK \u00b7 buy in store", lat:35.5189, lng:-97.5298 },
+    { name:"THE BLOK", where:"Oklahoma City, OK \u00b7 drink on site", lat:35.4747, lng:-97.5032 },
+    { name:"SPARK", where:"Oklahoma City, OK \u00b7 drink on site", lat:35.4715, lng:-97.5189 },
+    { name:"TACO NATION", where:"Oklahoma City, OK \u00b7 drink on site", lat:35.4497, lng:-97.5657 },
+    { name:"AMERICAN GOTHIC PIZZA", where:"Oklahoma City, OK \u00b7 drink on site", lat:35.4497, lng:-97.5657 },
+    { name:"EARLYWINE CELLAR & SPIRITS", where:"Oklahoma City, OK \u00b7 buy in store", lat:35.3271, lng:-97.5554 },
+    { name:"MUSTANG SPIRITS EXPRESS", where:"Mustang, OK \u00b7 buy in store", lat:35.3779, lng:-97.7511 }
+  ];
+
+  // ---------- state ----------
+  var locations = [], ranked = [], idx = 0, user = null;
+  var heading = 0, haveHeading = false, dispNeedle = 0, dispCard = 0, watchId = null;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var sections = ["intro","loading","active","error"];
+  function show(name){
+    sections.forEach(function(s){ $(s).classList.toggle("hidden", s!==name); });
+    var el=$(name); el.classList.remove("fade"); void el.offsetWidth; el.classList.add("fade");
+  }
+
+  // ---------- ticks ----------
+  (function(){
+    var g=$("ticks"), ns="http://www.w3.org/2000/svg";
+    for(var d=0; d<360; d+=5){
+      var major=(d%30===0), r1=major?134:142, r2=150, a=(d-90)*Math.PI/180;
+      var l=document.createElementNS(ns,"line");
+      l.setAttribute("x1",200+r1*Math.cos(a)); l.setAttribute("y1",200+r1*Math.sin(a));
+      l.setAttribute("x2",200+r2*Math.cos(a)); l.setAttribute("y2",200+r2*Math.sin(a));
+      l.setAttribute("stroke",major?"#f1e9d8":"#9bc0c3"); l.setAttribute("stroke-width",major?2.4:1);
+      l.setAttribute("opacity",major?0.95:0.55); g.appendChild(l);
+    }
+  })();
+
+  // ---------- geo math ----------
+  function toRad(x){ return x*Math.PI/180; }
+  function haversineMi(a,b){
+    var R=3958.8, dLat=toRad(b.lat-a.lat), dLng=toRad(b.lng-a.lng);
+    var s=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)*Math.sin(dLng/2);
+    return R*2*Math.atan2(Math.sqrt(s),Math.sqrt(1-s));
+  }
+  function bearing(a,b){
+    var y=Math.sin(toRad(b.lng-a.lng))*Math.cos(toRad(b.lat));
+    var x=Math.cos(toRad(a.lat))*Math.sin(toRad(b.lat))-Math.sin(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.cos(toRad(b.lng-a.lng));
+    return (Math.atan2(y,x)*180/Math.PI+360)%360;
+  }
+  function shortest(prev,next){ var diff=((next-prev+540)%360)-180; return prev+diff; }
+  function fmtDist(mi){
+    if(mi<0.1) return "you're basically there.";
+    if(mi<10) return mi.toFixed(1)+" mi away";
+    return Math.round(mi)+" mi away";
+  }
+
+  // ---------- geocoding (only for entries without lat/lng) ----------
+  function geocode(addr){
+    var u="https://nominatim.openstreetmap.org/search?format=json&limit=1&q="+encodeURIComponent(addr);
+    return fetch(u,{headers:{"Accept":"application/json"}})
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(j && j[0]) return { lat:parseFloat(j[0].lat), lng:parseFloat(j[0].lon) };
+        return null;
+      }).catch(function(){ return null; });
+  }
+  function prepareLocations(){
+    var ready=[], pending=[];
+    LOCATIONS.forEach(function(l){
+      if(typeof l.lat==="number" && typeof l.lng==="number"){
+        ready.push({ name:l.name, where:l.where||"", lat:l.lat, lng:l.lng });
+      } else if(l.address){
+        pending.push(l);
+      }
+    });
+    locations = ready;
+    if(!pending.length) return Promise.resolve();
+    $("loadingNote").textContent="Looking up "+pending.length+" address"+(pending.length>1?"es":"")+"…";
+    // sequential, polite (~1.1s apart) to respect the free geocoder
+    var i=0;
+    function next(){
+      if(i>=pending.length) return Promise.resolve();
+      var l=pending[i++];
+      return geocode(l.address).then(function(c){
+        if(c) locations.push({ name:l.name, where:l.where||l.address, lat:c.lat, lng:c.lng });
+        return new Promise(function(res){ setTimeout(res,1100); });
+      }).then(next);
+    }
+    return next();
+  }
+
+  // ---------- sensors / position ----------
+  function onOrient(e){
+    var h=null;
+    if(typeof e.webkitCompassHeading==="number" && !isNaN(e.webkitCompassHeading)){ h=e.webkitCompassHeading; }
+    else if(e.alpha!=null){ var so=(screen.orientation&&screen.orientation.angle)||window.orientation||0; h=(360-e.alpha+so)%360; }
+    if(h!=null && !isNaN(h)){ heading=h; haveHeading=true; render(); }
+  }
+  function attachOrient(){
+    window.addEventListener("deviceorientationabsolute",onOrient,true);
+    window.addEventListener("deviceorientation",onOrient,true);
+  }
+  function onPos(pos){
+    user={ lat:pos.coords.latitude, lng:pos.coords.longitude };
+    rank();
+    if(ranked.length){ if($("active").classList.contains("hidden")) show("active"); render(); }
+  }
+  function onPosErr(err){
+    fail("Can't find you.", err && err.code===1
+      ? "Location permission was blocked. Allow it and try again — the compass needs to know where you are."
+      : "Your location didn't come through. Step outside or try again.");
+  }
+  function rank(){
+    if(!user) return;
+    ranked = locations.map(function(l){ return { l:l, mi:haversineMi(user,l), brg:bearing(user,l) }; })
+                      .sort(function(a,b){ return a.mi-b.mi; });
+    if(idx>=ranked.length) idx=0;
+  }
+
+  // ---------- render ----------
+  function render(){
+    if(!user || !ranked.length) return;
+    var cur=ranked[idx], brg=cur.brg;
+    var tN=haveHeading?(brg-heading):brg, tC=haveHeading?(-heading):0;
+    dispNeedle=shortest(dispNeedle,((tN%360)+360)%360);
+    dispCard  =shortest(dispCard,((tC%360)+360)%360);
+    $("needle").setAttribute("transform","rotate("+dispNeedle.toFixed(1)+" 200 200)");
+    $("card").setAttribute("transform","rotate("+dispCard.toFixed(1)+" 200 200)");
+    $("placeName").textContent=cur.l.name;
+    $("placeDist").textContent=fmtDist(cur.mi);
+    $("placeWhere").textContent=cur.l.where ? " · "+cur.l.where : "";
+    $("mapsBtn").href="https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(cur.l.lat+","+cur.l.lng);
+    $("nextBtn").style.display=ranked.length>1?"":"none";
+    $("activeNote").textContent=haveHeading
+      ? "Walk toward the can. When it points straight up, it's dead ahead."
+      : "No compass on this device — the needle points by true north (top = north). Open it on your phone for live aim.";
+  }
+
+  // ---------- flow ----------
+  function fail(title,msg){ $("errTitle").textContent=title; $("errMsg").textContent=msg; show("error"); }
+
+  function begin(){
+    show("loading");
+    $("loadingNote").textContent="Reading your compass…";
+    prepareLocations().then(function(){
+      if(!locations.length){ fail("No spots yet.","No locations are loaded. Add some to the list inside the file."); return; }
+      startGeo();
+    });
+  }
+  function startGeo(){
+    if(!("geolocation" in navigator)){ fail("No location.","This browser won't share a location, so there's nothing to point at."); return; }
+    $("loadingNote").textContent="Finding you…";
+    if(watchId!=null) navigator.geolocation.clearWatch(watchId);
+    watchId=navigator.geolocation.watchPosition(onPos,onPosErr,{enableHighAccuracy:true,timeout:15000,maximumAge:10000});
+  }
+  function requestEverything(){
+    if(typeof DeviceOrientationEvent!=="undefined" && typeof DeviceOrientationEvent.requestPermission==="function"){
+      DeviceOrientationEvent.requestPermission().then(function(res){ if(res==="granted") attachOrient(); begin(); })
+        .catch(function(){ begin(); });
+    } else { attachOrient(); begin(); }
+  }
+
+  // ---------- events ----------
+  $("startBtn").addEventListener("click",requestEverything);
+  $("retryBtn").addEventListener("click",requestEverything);
+  $("nextBtn").addEventListener("click",function(){ if(!ranked.length) return; idx=(idx+1)%ranked.length; render(); });
+
+})();
+</script>
+</body>
+</html>
