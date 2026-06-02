@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#dc4943">
 <title>Which Way to the Lake</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,7 +20,8 @@
   body{
     background:var(--paper); color:var(--ink); font-family:"DM Mono",ui-monospace,monospace;
     min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding:28px 22px; text-align:center; overflow:hidden; position:relative;
+    padding:calc(24px + env(safe-area-inset-top)) 22px calc(56px + env(safe-area-inset-bottom));
+    text-align:center; overflow:hidden; position:relative; touch-action:manipulation;
   }
   body::before{ content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
     background:radial-gradient(120% 120% at 50% 20%, rgba(255,255,255,.35), transparent 55%),
@@ -58,11 +59,13 @@
   .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;}
   .btn{font-family:"DM Mono",monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;background:var(--red);color:var(--paper);border:none;border-radius:999px;padding:14px 26px;cursor:pointer;font-weight:500;box-shadow:0 4px 0 var(--red-deep);transition:transform .12s, box-shadow .12s;text-decoration:none;display:inline-block;}
   .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--red-deep);}
+  .btn.sm{font-size:10px;letter-spacing:.12em;padding:8px 18px;box-shadow:0 3px 0 var(--red-deep);}
+  .btn.sm:active{transform:translateY(2px);box-shadow:0 1px 0 var(--red-deep);}
   .link{font-size:11px;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;cursor:pointer;letter-spacing:.04em;background:none;border:none;font-family:inherit;}
   .link:hover{color:var(--red-deep);}
   .note{font-size:11px;color:var(--ink-soft);line-height:1.5;max-width:32ch;}
   .note.err{color:var(--red-deep);}
-  footer{position:fixed;bottom:14px;left:0;right:0;z-index:1;text-align:center;font-size:9.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-soft);opacity:.7;}
+  footer{position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));left:0;right:0;z-index:1;text-align:center;font-size:9.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-soft);opacity:.7;}
   .hidden{display:none!important;}
   .fade{animation:fade .5s ease both;}
   @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
@@ -76,15 +79,12 @@
       <span class="word">Lake Hour</span>
       <svg class="wave" viewBox="0 0 118 8" fill="none"><path d="M2 5 Q 11 -1 20 5 T 38 5 T 56 5 T 74 5 T 92 5 T 116 5" stroke="#dc4943" stroke-width="2.5" stroke-linecap="round"/></svg>
     </div>
-    <div class="kicker">A Fine Time</div>
-    <h1>Which way<br>to the <em>lake</em>.</h1>
-    <p class="blurb">A compass. It points at the nearest place that sells Lake&nbsp;Hour. That's the whole thing.</p>
-    <div class="actions" style="margin-top:6px;"><button class="btn" id="startBtn">Point me there</button></div>
-    <p class="note">Needs your location and, on a phone, permission to use the compass. Works best outside, held flat.</p>
+    <h1>Which way<br>to the <em>lake</em>?</h1>
+    <p class="blurb">A compass that points to the nearest Lake&nbsp;Hour.</p>
+    <div class="actions" style="margin-top:10px;"><button class="btn" id="startBtn">Point me there</button></div>
   </section>
 
   <section id="loading" class="hidden">
-    <div class="kicker">Hold still</div>
     <h1 style="font-size:clamp(30px,9vw,44px);">Finding the<br><em>nearest can.</em></h1>
     <p class="note" id="loadingNote">Reading your compass…</p>
   </section>
@@ -137,8 +137,8 @@
           <!-- north point: red blade -->
           <path d="M200 64 L212 96 L212 200 L188 200 L188 96 Z" fill="#dc4943" stroke="#211d18" stroke-width="2" stroke-linejoin="round"/>
           <!-- brand etched up the pointer -->
-          <text x="200" y="153" text-anchor="middle" transform="rotate(-90 200 153)"
-                font-family="Instrument Serif, serif" font-size="13" letter-spacing="2" fill="#f6efde">LAKE HOUR</text>
+          <text x="200" y="150" text-anchor="middle" transform="rotate(-90 200 150)"
+                font-family="Instrument Serif, serif" font-size="11.5" letter-spacing="3" fill="#f6efde" opacity="0.92">LAKE HOUR</text>
         </g>
         <circle cx="200" cy="200" r="13" fill="#f1e9d8" stroke="#211d18" stroke-width="2.5"/>
         <circle cx="200" cy="200" r="4" fill="#211d18"/>
@@ -149,9 +149,8 @@
       <h2 class="place" id="placeName">—</h2>
       <div class="meta"><span class="dist" id="placeDist"></span><span id="placeWhere"></span></div>
     </div>
-    <div class="actions"><a class="btn" id="mapsBtn" target="_blank" rel="noopener">Get directions</a></div>
-    <div class="actions"><button class="link" id="nextBtn">not this one? try the next closest ›</button></div>
-    <p class="note" id="activeNote"></p>
+    <div class="actions"><a class="btn sm" id="mapsBtn" target="_blank" rel="noopener">Get directions</a></div>
+    <div class="actions"><button class="link" id="nextBtn">try the next closest ›</button></div>
   </section>
 
   <section id="error" class="hidden">
@@ -547,9 +546,6 @@
     $("placeWhere").textContent=cur.l.where ? " · "+cur.l.where : "";
     $("mapsBtn").href="https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(cur.l.lat+","+cur.l.lng);
     $("nextBtn").style.display=ranked.length>1?"":"none";
-    $("activeNote").textContent=haveHeading
-      ? "Walk toward the can. When it points straight up, it's dead ahead."
-      : "No compass on this device — the needle points by true north (top = north). Open it on your phone for live aim.";
   }
 
   // ---------- flow ----------
