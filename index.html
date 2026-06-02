@@ -43,6 +43,7 @@
   .brandmark.sm .word{font-size:21px;}
   .brandmark .wave{display:block;width:118px;height:8px;}
   .brandmark.sm .wave{width:84px;}
+  .urlchip{display:inline-block;margin:2px auto 0;font-size:12px;letter-spacing:.06em;color:var(--ink-soft);background:var(--paper-deep);border:1px solid var(--line);border-radius:999px;padding:7px 16px;}
 
   .compass{position:relative;width:min(78vw,320px);aspect-ratio:1;margin:6px auto 2px;filter:drop-shadow(0 18px 26px rgba(33,29,24,.22));}
   .compass svg{width:100%;height:100%;overflow:visible;display:block;}
@@ -158,6 +159,16 @@
     <h1 style="font-size:clamp(28px,8vw,42px);" id="errTitle">No fix.</h1>
     <p class="note err" id="errMsg"></p>
     <div class="actions"><button class="btn" id="retryBtn">Try again</button></div>
+  </section>
+
+  <section id="desktop" class="hidden">
+    <div class="brandmark">
+      <span class="word">Lake Hour</span>
+      <svg class="wave" viewBox="0 0 118 8" fill="none"><path d="M2 5 Q 11 -1 20 5 T 38 5 T 56 5 T 74 5 T 92 5 T 116 5" stroke="#dc4943" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </div>
+    <h1>Only works on<br>your <em>phone</em>, broski.</h1>
+    <p class="blurb">It needs a real compass. Open this page on your phone and point yourself at the nearest Lake&nbsp;Hour.</p>
+    <p class="urlchip" id="urlChip"></p>
   </section>
 
 </div>
@@ -431,7 +442,7 @@
   var heading = 0, haveHeading = false, dispNeedle = 0, dispCard = 0, watchId = null;
 
   var $ = function(id){ return document.getElementById(id); };
-  var sections = ["intro","loading","active","error"];
+  var sections = ["intro","loading","active","error","desktop"];
   function show(name){
     sections.forEach(function(s){ $(s).classList.toggle("hidden", s!==name); });
     var el=$(name); el.classList.remove("fade"); void el.offsetWidth; el.classList.add("fade");
@@ -576,6 +587,18 @@
   $("startBtn").addEventListener("click",requestEverything);
   $("retryBtn").addEventListener("click",requestEverything);
   $("nextBtn").addEventListener("click",function(){ if(!ranked.length) return; idx=(idx+1)%ranked.length; render(); });
+
+  // ---------- phone gate ----------
+  function isPhone(){
+    var ua = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent||"");
+    var coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    var touch = (navigator.maxTouchPoints||0) > 0 || "ontouchstart" in window;
+    return ua || (coarse && touch);
+  }
+  if(!isPhone()){
+    $("urlChip").textContent = location.hostname || "open on your phone";
+    show("desktop");
+  }
 
 })();
 </script>
